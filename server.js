@@ -224,11 +224,21 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
         });
         Promise.all(getLinePromises)
         .then(allFileLines => {
+            var count1 = 0;
             allFileLines.forEach(oneFileData => {
                 var lines = oneFileData.lines;
                 const fileDate = oneFileData.date;
                 var firstRow = true;
                 var algorithm = false;
+                if (count1<9) {
+                    for (var i=66;i<71; i++) {
+                        console.log(lines[0].charAt(i)+": " + lines[0].charCodeAt(i));
+                    }
+                    count1++;
+                }
+                if (lines[0].length > 1000) {
+                    
+                }
                 console.log('Looking at ' + lines.length + ' lines in ' + oneFileData.fileName + ". first line is " + lines[0].length + " chars long");
                 lines.forEach( line => {
                     const origLine = line;
