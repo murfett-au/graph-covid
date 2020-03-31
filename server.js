@@ -2,7 +2,8 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const path = require('path');
-const dirNameDailyReports = './COVID-19/csse_covid_19_data/csse_covid_19_daily_reports/';
+const johnHopkinsDataPath = './COVID19/csse_covid_19_data/';
+const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/';
 const fileNamesTimeSeries = {
     cases: 'time_series_covid19_confirmed_global.csv',
     deaths: 'time_series_covid19_deaths_global.csv',
@@ -27,7 +28,7 @@ const replacements = {
     'Hong Kong SAR': 'Hong Kong',
 }
 const statesByCode = require('./states');
-const dirNameTimeSeries = './COVID-19/csse_covid_19_data/csse_covid_19_time_series/';
+const dirNameTimeSeries = johnHopkinsDataPath + 'csse_covid_19_time_series/';
 const port = process.env.PORT || 80;
 const allowedApiConsumerPort = 3000;
 app.use(express.static(path.join(__dirname, 'build')));
