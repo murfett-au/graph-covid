@@ -2,7 +2,7 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const path = require('path');
-const johnHopkinsDataPath = './COVID19/csse_covid_19_data/';
+const johnHopkinsDataPath = './COVID-19/csse_covid_19_data/';
 const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/';
 const fileNamesTimeSeries = {
     cases: 'time_series_covid19_confirmed_global.csv',
