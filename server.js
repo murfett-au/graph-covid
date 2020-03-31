@@ -226,19 +226,15 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                     line = line.trim();
                     if (firstRow) {
                         firstRow = false;
-                        switch (line) {
-                            case 'Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered':
-                                algorithm = 1
-                            break;
-                            case 'Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered,Latitude,Longitude':
-                                algorithm = 2;
-                            break
-                            case 'FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key':
-                                algorithm = 3;
-                            break;
-                            default:
-                                console.log('Unknown header row"' + line + "'");
-                                algorithm = false;
+                        if (line.indexOf('Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered,Latitude,Longitude')===0) {
+                            algorithm = 2;
+                        } else if (line.indexOf('Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered')===0) {
+                            algorithm = 1;
+                        } else if (line.indexOf('FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key')===0) {
+                            algorithm = 3;
+                        } else {
+                            console.log('Unknown header first row"' + line + "'");
+                            algorithm = false;
                         }
                     } else {
                         if (algorithm) {
