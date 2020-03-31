@@ -195,8 +195,9 @@ function getDailyReportFileLines(fileName) {
         fs.readFile(dirNameDailyReports + fileName,'utf-8',(err, data) => {
             if (err) reject(err);
             // In Windows this works, but when git pushes it up, it replaces \r\n with 
-            const linesRN = data.split("\r\n");// \n is LF, \r is CR \015. Lines have CRLF delimiters in daily reports.
-            const lines = data.split("\r");// if we are on linux, after a git push, this will split. On windows, the last split will have removed \r\n so \s.
+            const linesRN = data.split("\r\n");
+            const linesR = data.split("\r");
+            const lines = (linesRN.length > linesR.length ? linesRN : linesR);
             //console.log('reading file ' + dirNameDailyReports + fileName + ' which as ' + lines.length + ' lines');
             resolve({
                 lines:lines,
@@ -228,7 +229,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                 const fileDate = oneFileData.date;
                 var firstRow = true;
                 var algorithm = false;
-                console.log('Looking at ' + lines.length + ' lines in ' + oneFileData.fileName);
+                console.log('Looking at ' + lines.length + ' lines in ' + oneFileData.fileName + ". first line is " + lines[0].length + " chars long");
                 lines.forEach( line => {
                     const origLine = line;
                     
