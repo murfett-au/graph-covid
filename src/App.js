@@ -3,12 +3,11 @@ import Select from 'react-select';
 import axios from 'axios';
 //import {setCommonChartJsGlobalDefaults} from './commonChartJsGlobalDefaults';
 import {Line} from 'react-chartjs-2';
-
 import './App.css';
 
 function App() {
   const dblingAxisFixed = { reverse: true, max: 5, min: 0, stepSize: 1 };
-  const dblingAxisNotFixed = { reverse: true };
+  const dblingAxisNotFixed =  { reverse: true }
   var [ areas, setAreas ] = useState(false);
   var [ areaSelectValue, setAreaSelectValue ] = useState(false);
   var [ isLoading, setIsLoading ] = useState(false);
@@ -16,6 +15,18 @@ function App() {
   var [ errors, setErrors ] = useState(false);
   var [ dblingAxisTicks, setDblingAxisTicks ] = useState(dblingAxisFixed);
   var [ selectedAreaData, setSelectedAreaData] = useState(false);
+  var apiPort;
+  /** see if this is running on a dev port 3000 box:
+   * window.location.host == "localhost:3000";
+   * 
+   */
+  if (window.location.host.slice(-5) === ":3000") {
+    apiPort = 5000;
+  } else {
+    apiPort = 80;
+  }
+  console.log("API Port:",apiPort,window.location.hostname,);
+  
   const chartData = {
       labels: selectedAreaData.labels,
       datasets: [{
@@ -91,9 +102,9 @@ function App() {
       setIsLoading(true);
       try {
         
-        
-        //axios.defaults.baseURL = window.location.protocol + "//" + window.location.hostname + ":81";
-        //console.log('BaseURL:',axios.defaults.baseURL);
+        if (apiPort !== 80) {
+          axios.defaults.baseURL = window.location.protocol + "//" + window.location.hostname + ":" + apiPort;
+        }
         const result = await axios('/areas');
         
         if (result.data) {
@@ -137,11 +148,12 @@ function App() {
       setIsLoading(true);
       const url = '/data/' + areaSelectValue.value + (includeDescendants.includeDescendants?'/with':'/without');
       try {
-        
-        const result = await axios(url);//{ baseURL: 'http://localhost:81' });
+        if (apiPort !== 80) {
+          axios.defaults.baseURL = window.location.protocol + "//" + window.location.hostname + ":" + apiPort;
+        }
+        const result = await axios(url);
         if (result.data) {
           setSelectedAreaData(result.data)
-        
         } else {
           setErrors(['Api ' + url + ' response did not contain any data...']);
         }
@@ -156,7 +168,7 @@ function App() {
     } else {
       console.log('Skipping fetch data until default area is set');
     }
-  },[ includeDescendants, areaSelectValue]);
+  },[ includeDescendants, areaSelectValue, apiPort]);
 
   function changeSelectedArea(reactSelectValue, inclChildren,logToConsole = false) {
     if (logToConsole) {
@@ -214,7 +226,7 @@ function App() {
           htmlFor='fix-dbling-axis'
           onClick = {() => setDblingAxisTicks(dblingAxisTicks.max ? dblingAxisNotFixed : dblingAxisFixed)}>
           &nbsp;Fix Doubling Rate Axis to 5 days
-          <input type="checkbox" id='fix-dbling-axis' readOnly checked={dblingAxisTicks.max} />
+          <input type="checkbox" id='fix-dbling-axis' readOnly checked={(dblingAxisTicks.max >0)} />
         </label>
       </div>
       {graph}
