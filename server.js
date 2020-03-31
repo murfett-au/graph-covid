@@ -80,7 +80,7 @@ app.get('/data/:requestedLocationSlug/:includeDescendants', (req, res) => {
 })
 app.get('/areas', (req, res) => {
     //getCountriesAndStatesFromTimeSeries( (error, countries, states) => {
-        console.log('/areas called');
+    console.log('/areas called');
     getDataFromDailyReports( false, false, (error, countriesArray, states, regions, dataByLocationDate) => {
         if (error) {
             res.status(500).send('Internal error occured getting countries list')
@@ -106,6 +106,7 @@ app.get('/areas', (req, res) => {
             Object.keys(areas).sort().forEach(function(key) {
               ordered[key] = areas[key];
             });
+            console.log('getDataFromDailyReports about to return ' + Object.keys(ordered).length + ' areas');
             res.send(ordered);
         }
     });
@@ -132,67 +133,75 @@ function getCsvFiles(dirname) {
   });
 }
 
-function getTimeSeriesFileLines(fileName) {
-    return new Promise( (resolve, reject) => {
-        fs.readFile(dirNameTimeSeries + fileName + ".csv",'utf-8',(err, data) => {
-            if (err) reject(err);
-            const lines = data.split("\n");
-            resolve(lines);
-        });
-    });
-}
-function getCountriesAndStatesFromTimeSeries(callback) {
-    var countries = [];
-    var statesByCountry = {};
-    var getLinePromises = [];
-    for(var type in fileNamesTimeSeries) {
-        const fileName = fileNamesTimeSeries[type];
-        getLinePromises.push(getTimeSeriesFileLines(fileName))
-    }
-    
-    Promise.all(getLinePromises)
-    .then(allFileLines => {
-        allFileLines.forEach((lines) => {
-            var firstRow = true;
-            lines.forEach( line => {
-                if (firstRow) {
-                    firstRow = false;
-                } else {
-                    const [state, country] = line.split(",",2);
-                    if (country && countries.indexOf(country) === -1) {
-                        countries.push(country);
-                    }
-                    if (state) {
-                        if (statesByCountry[country]) {
-                            if (statesByCountry[country].indexOf(state) === -1) {
-                                statesByCountry[country].push(state);
-                            } else {
-                                statesByCountry[country] = [state];
-                            }
-                        } else {
-                            statesByCountry[country] = [state];
-                        }
-                    }
-                }
-            });
+// function getTimeSeriesFileLines(fileName) {
+//     return new Promise( (resolve, reject) => {
+//         fs.readFile(dirNameTimeSeries + fileName + ".csv",'utf-8',(err, data) => {
+//             if (err) reject(err);
+//             console.log('getTimeSeriesFileLines data',data);
+//             const lines = data.split("\n");
             
-        });
-        callback(false, countries, statesByCountry );
-    })
-    .catch(error  => {
-        console.error(error);
-        callback(error);
-    });
-}
+//             // for(var i=0; i<100; i++) {
+//             //     console.log(data.charCodeAt(i));
+//             // }
+//             resolve(lines);
+//         });
+//     });
+// }
+// function getCountriesAndStatesFromTimeSeries(callback) {
+//     var countries = [];
+//     var statesByCountry = {};
+//     var getLinePromises = [];
+//     for(var type in fileNamesTimeSeries) {
+//         const fileName = fileNamesTimeSeries[type];
+//         getLinePromises.push(getTimeSeriesFileLines(fileName))
+//     }
+    
+//     Promise.all(getLinePromises)
+//     .then(allFileLines => {
+//         allFileLines.forEach((lines) => {
+//             var firstRow = true;
+//             lines.forEach( line => {
+//                 if (firstRow) {
+//                     firstRow = false;
+//                 } else {
+//                     const [state, country] = line.split(",",2);
+//                     if (country && countries.indexOf(country) === -1) {
+//                         countries.push(country);
+//                     }
+//                     if (state) {
+//                         if (statesByCountry[country]) {
+//                             if (statesByCountry[country].indexOf(state) === -1) {
+//                                 statesByCountry[country].push(state);
+//                             } else {
+//                                 statesByCountry[country] = [state];
+//                             }
+//                         } else {
+//                             statesByCountry[country] = [state];
+//                         }
+//                     }
+//                 }
+//             });
+            
+//         });
+//         callback(false, countries, statesByCountry );
+//     })
+//     .catch(error  => {
+//         console.error(error);
+//         callback(error);
+//     });
+// }
 function getDailyReportFileLines(fileName) {
     return new Promise( (resolve, reject) => {
         fs.readFile(dirNameDailyReports + fileName,'utf-8',(err, data) => {
             if (err) reject(err);
-            const lines = data.split("\r\n");// \n is LF, \r is CR \015. Lines have CRLF delimiters in daily reports.
+            // In Windows this works, but when git pushes it up, it replaces \r\n with 
+            const linesRN = data.split("\r\n");// \n is LF, \r is CR \015. Lines have CRLF delimiters in daily reports.
+            const lines = data.split("\r");// if we are on linux, after a git push, this will split. On windows, the last split will have removed \r\n so \s.
             //console.log('reading file ' + dirNameDailyReports + fileName + ' which as ' + lines.length + ' lines');
             resolve({
                 lines:lines,
-                date: getDateFromFileName(fileName)
+                date: getDateFromFileName(fileName),
+                fileName: fileName,
             });
         });
     });
@@ -214,11 +223,12 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
         });
         Promise.all(getLinePromises)
         .then(allFileLines => {
-            allFileLines.slice(0,4).forEach(oneFileData => {
+            allFileLines.forEach(oneFileData => {
                 var lines = oneFileData.lines;
                 const fileDate = oneFileData.date;
                 var firstRow = true;
                 var algorithm = false;
+                console.log('Looking at ' + lines.length + ' lines in ' + oneFileData.fileName);
                 lines.forEach( line => {
                     const origLine = line;
                     
@@ -369,8 +379,8 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                                         //     }
                                         // });
                                     }
-                                    console.log("Countries:",countries);
-                                    console.log('States by Country',statesByCountry);
+                                    // console.log("Countries:",countries);
+                                    // console.log('States by Country',statesByCountry);
                                     if (addDataForThisLocation) {
                                         const confirmedInt = confirmed ? parseInt(confirmed):0;
                                         const deathsInt = deaths ? parseInt(deaths):0;
