@@ -28,7 +28,7 @@ const replacements = {
 }
 const statesByCode = require('./states');
 const dirNameTimeSeries = './COVID-19/csse_covid_19_data/csse_covid_19_time_series/';
-const apiProviderPort = 80;
+const port = process.env.PORT || 80;
 const allowedApiConsumerPort = 3000;
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(function (req, res, next) {
@@ -504,4 +504,4 @@ function dateYmdIncrement(dateBefore) {
     // return dateAfter;
     return new Date(Date.parse(dateBefore.replace(/-/g, '\/')) + 129600000).toISOString().substring(0,10);
 }
-app.listen(apiProviderPort, () => console.log(`Example app listening on port ${apiProviderPort}!`))
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
