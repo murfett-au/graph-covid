@@ -18,17 +18,24 @@
 .Filters {
 display:flex;
 align-items: center;
+flex-wrap: wrap;
 }
 .FilterItem {
   display:flex;
-  flex-grow: 1;
   font-style: bold;
   align-items: center;
-  
+}
+.FilterItemGrow {
+  display:flex;
+  font-style: bold;
+  align-items: center;
+  flex-grow:1;
 }
 .SelectAreas {
-  flex-grow:1;
-  min-width: 180px;
+  width:250px;
+}
+.SelectAreasLabel {
+  width:auto;
 }
 .Graph {
 

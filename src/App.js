@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import axios from 'axios';
-//import {setCommonChartJsGlobalDefaults} from './commonChartJsGlobalDefaults';
 import {Line} from 'react-chartjs-2';
 import './App.css';
+//import {chartOptionsFixed, chartOptionsNotFixed} from './chartOptions.js';
+import {chartOptionsFixed} from './chartOptions.js'
 
 function App() {
-  const dblingAxisFixed = { reverse: true, max: 5, min: 0, stepSize: 1 };
-  const dblingAxisNotFixed =  { reverse: true }
+  
+  
   var [ areas, setAreas ] = useState(false);
   var [ areaSelectValue, setAreaSelectValue ] = useState(false);
   var [ isLoading, setIsLoading ] = useState(false);
   var [ includeDescendants, setIncludeDescendants] = useState({includeDescendants:false})
   var [ errors, setErrors ] = useState(false);
-  var [ dblingAxisTicks, setDblingAxisTicks ] = useState(dblingAxisFixed);
+  //var [ useFixedAxis, setUseFixedAxis ] = useState(true);
   var [ selectedAreaData, setSelectedAreaData] = useState(false);
   var apiPort;
   /** see if this is running on a dev port 3000 box:
@@ -47,55 +48,7 @@ function App() {
       }]
   };
   const defaultAreaSlug = 'spain';
-  const chartOptions = {
-    responsive: true,
-    tooltips: {
-      mode: 'label'
-    },
-    elements: {
-      line: {
-        fill: false
-      }
-    },
-    scales: {
-      
-      yAxes: [
-        {
-          id: 'doubling-days',
-          scaleLabel: {
-            display: true,
-            labelString: 'Deaths Double Every (days)',
-          },
-          type: 'linear',
-          display: true,
-          position: 'left',
-          
-          gridLines: {
-            display: true
-          },
-          labels: {
-            show: true
-          },
-          ticks: dblingAxisTicks
-        },
-        {
-          id: 'deaths',
-          scaleLabel: {
-            display: true,
-            labelString: 'Deaths',
-          },
-          type: 'linear',
-          display: true,
-          position: 'right',
-          
-          gridLines: {
-            display: false
-          },
-
-        }
-      ]
-    }
-  };
+  
   useEffect(() => {
     const fetchAreasData = async () => {
       setErrors(false);
@@ -193,7 +146,8 @@ function App() {
   } else if (isLoading) {
     graph = <div className="Loading">Loading</div>;
   } else if (selectedAreaData) {
-    graph = <div><Line data={chartData} options = {chartOptions}/></div>;
+    //graph = <div><Line data={chartData} options = {useFixedAxis ? chartOptionsFixed : chartOptionsNotFixed}/></div>;
+    graph = <div><Line data={chartData} options = {chartOptionsFixed}/></div>;
   } else {
     graph = <div>No Data</div>
   }
@@ -220,15 +174,16 @@ function App() {
           <input type="checkbox" readOnly checked={includeDescendants.includeDescendants} />
         </label>
       </div>
-      <div className="ChartOptions">
+      {/* <div className="ChartOptions">
         <label
           className='OptionsItem'
           htmlFor='fix-dbling-axis'
-          onClick = {() => setDblingAxisTicks(dblingAxisTicks.max ? dblingAxisNotFixed : dblingAxisFixed)}>
+          onClick = {() => setUseFixedAxis(!useFixedAxis)}>
           &nbsp;Fix Doubling Rate Axis to 5 days
-          <input type="checkbox" id='fix-dbling-axis' readOnly checked={(dblingAxisTicks.max >0)} />
+          <input type="checkbox" id='fix-dbling-axis' readOnly checked={useFixedAxis} />
         </label>
-      </div>
+        
+      </div> */}
       {graph}
     </div>
   );
