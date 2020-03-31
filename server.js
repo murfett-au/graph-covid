@@ -210,6 +210,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
     .then( fileNames => {
         
         fileNames.forEach(fileName => {
+            console.log('starting parse of ' + fileName);
             getLinePromises.push(getDailyReportFileLines(fileName));
         });
         Promise.all(getLinePromises)
