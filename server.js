@@ -2,7 +2,7 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const path = require('path');
-const johnHopkinsDataPath = './COVID19/csse_covid_19_data/';
+const johnHopkinsDataPath = './COVID-19/csse_covid_19_data/';
 const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/';
 const fileNamesTimeSeries = {
     cases: 'time_series_covid19_confirmed_global.csv',
@@ -505,4 +505,4 @@ function dateYmdIncrement(dateBefore) {
     // return dateAfter;
     return new Date(Date.parse(dateBefore.replace(/-/g, '\/')) + 129600000).toISOString().substring(0,10);
 }
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => console.log(`Corona Virus Data API Server listening on port ${port}!`))
