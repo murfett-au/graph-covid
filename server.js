@@ -210,7 +210,6 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
     .then( fileNames => {
         
         fileNames.forEach(fileName => {
-            console.log('starting parse of ' + fileName);
             getLinePromises.push(getDailyReportFileLines(fileName));
         });
         Promise.all(getLinePromises)
@@ -236,6 +235,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                             console.log('Unknown header first row"' + line + "'");
                             algorithm = false;
                         }
+                        console.log(lines.length + " lines for date " + fileDate + " algorithm " + algorithm);
                     } else {
                         if (algorithm) {
                             for(strFrom in replacements){
@@ -369,6 +369,8 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                                         //     }
                                         // });
                                     }
+                                    console.log("Countries:",countries);
+                                    console.log('States by Country',statesByCountry);
                                     if (addDataForThisLocation) {
                                         const confirmedInt = confirmed ? parseInt(confirmed):0;
                                         const deathsInt = deaths ? parseInt(deaths):0;
