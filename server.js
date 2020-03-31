@@ -215,7 +215,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
         });
         Promise.all(getLinePromises)
         .then(allFileLines => {
-            allFileLines.forEach(oneFileData => {
+            allFileLines.slice(0,4).forEach(oneFileData => {
                 var lines = oneFileData.lines;
                 const fileDate = oneFileData.date;
                 var firstRow = true;
