@@ -230,7 +230,7 @@ function getDailyReportFileLines(fileName) {
             if (err) reject(err);
             // In Windows this works, but when git pushes it up, it replaces \r\n with 
             const linesRN = data.split("\r\n");
-            const linesR = data.split("\r");
+            const linesR = data.split("\n");
             const lines = (linesRN.length > linesR.length ? linesRN : linesR);
             //console.log('reading file ' + dirNameDailyReports + fileName + ' which as ' + lines.length + ' lines');
             resolve({
