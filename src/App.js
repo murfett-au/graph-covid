@@ -8,7 +8,6 @@ import {chartOptionsFixed} from './chartOptions.js'
 
 function App() {
   
-  
   var [ areas, setAreas ] = useState(false);
   var [ areaSelectValue, setAreaSelectValue ] = useState(false);
   var [ isLoading, setIsLoading ] = useState(false);
@@ -16,18 +15,10 @@ function App() {
   var [ errors, setErrors ] = useState(false);
   //var [ useFixedAxis, setUseFixedAxis ] = useState(true);
   var [ selectedAreaData, setSelectedAreaData] = useState(false);
-  var apiPort;
-  /** see if this is running on a dev port 3000 box:
-   * window.location.host == "localhost:3000";
-   * 
-   */
-  if (window.location.host.slice(-5) === ":3000") {
-    apiPort = 5000;
-  } else {
-    apiPort = 80;
-  }
-  console.log("API Port:",apiPort,window.location.hostname,);
-  
+  const apiPort = process.env.REACT_APP_API_PORT || 80; // gets value of REACT_APP_API_PORT environment valiable.
+  console.log(apiPort);
+  console.log("API Port:",apiPort);
+  console.log(process);
   const chartData = {
       labels: selectedAreaData.labels,
       datasets: [{

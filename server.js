@@ -2,13 +2,14 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const path = require('path');
+require('dotenv').config();
 const johnHopkinsDataPath = './johnhopkinsdata/';
 const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/';
-const fileNamesTimeSeries = {
-    cases: 'time_series_covid19_confirmed_global.csv',
-    deaths: 'time_series_covid19_deaths_global.csv',
-    recovered: 'time_series_covid19_recovered_global.csv'
-};
+// const fileNamesTimeSeries = {
+//     cases: 'time_series_covid19_confirmed_global.csv',
+//     deaths: 'time_series_covid19_deaths_global.csv',
+//     recovered: 'time_series_covid19_recovered_global.csv'
+//};
 // const monthNamesLong = ["January", "February", "March", "April", "May", "June",
 //   "July", "August", "September", "October", "November", "December"
 // ];
@@ -28,9 +29,41 @@ const replacements = {
     'Hong Kong SAR': 'Hong Kong',
 }
 const statesByCode = require('./states');
-const dirNameTimeSeries = johnHopkinsDataPath + 'csse_covid_19_time_series/';
-const port = process.env.PORT || 80;
-const allowedApiConsumerPort = 3000;
+//const dirNameTimeSeries = johnHopkinsDataPath + 'csse_covid_19_time_series/';
+/**
+ * PORTS
+ * 
+ * We need to know:
+ *  1) in this server.js file:
+ *    1.1) What port to listen for inbound HTTP GETs on
+ *    1.2) What port to use in the Access-Control-Allow-Origin to allow local dev env to have create-react-app server running on a different port to the server.js
+ *  2) in React Client:
+ *    2.1) What port to send API requests to.
+ * 
+ * OS Environment Variables are used to store the port numbers used by the API and the client.
+ * 
+ * On local dev environment, process.env.REACT_APP_API_PORT is defined by the create-react-app
+ * to give the react port number.
+ * 
+ * Heroku uses port forwarding from port 80 to arbritrary ports for its many processes. On node.js on heroku, 
+ * process.env.port is defined to tell this server.js what port incoming requests are being forwarded to.
+ * 
+ * To set the process.env.port in local dev environment, we would define a PORT environment variable.
+ * BUT we can't use PORT env var as that also tells creat-react-app what port to run on, creating a conflict
+ * as bother server.js and create-react-app want to run on the same port.
+ * 
+ * So we find what we need to know:
+ * 1) in this server.js file:
+ *   1.1) Listen On: If process.env.REACT_APP_API_PORT is truthy, use it, if not use process.env.port
+ *   1.2) If process.env.REACT_APP_API_PORT is truthy, use 3000, if not use process.env.port
+ * 2) in React Client:
+ *   2.1) If process.env.REACT_APP_API_PORT is truthy, use 5000, if not use same port you are running on
+ */
+const reactAppApiPort = process.env.REACT_APP_API_PORT;
+console.log('reactAppApiPort=' + reactAppApiPort);
+const clientPort = reactAppApiPort ? 3000 : process.env.port;
+const serverPort = (reactAppApiPort ? reactAppApiPort : process.env.port);
+console.log("Client Port:" + clientPort + "; Server Port: " + serverPort + ";");
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(function (req, res, next) {
     //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:80');
@@ -45,9 +78,10 @@ app.use(function (req, res, next) {
     } else {
       console.log('Error the host contained multiple colons!');
     }
-    //console.log('protocol:',req.protocol,'host:',host,'fqdn:' + fqdn);
-    const allowableOrigin = req.protocol + '://' + fqdn + ':' + allowedApiConsumerPort;
-    //console.log('allowableOrigin:',allowableOrigin)
+    console.log('protocol:',req.protocol,'host:',host,'fqdn:' + fqdn);
+    
+    const allowableOrigin = req.protocol + '://' + fqdn + ':' + clientPort;
+    console.log('allowableOrigin:',allowableOrigin)
     res.setHeader('Access-Control-Allow-Origin', allowableOrigin);
     next();
   });
@@ -224,22 +258,22 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
         });
         Promise.all(getLinePromises)
         .then(allFileLines => {
-            var count1 = 0;
+            //var count1 = 0;
             allFileLines.forEach(oneFileData => {
                 var lines = oneFileData.lines;
                 const fileDate = oneFileData.date;
                 var firstRow = true;
                 var algorithm = false;
-                if (count1<9) {
-                    for (var i=66;i<71; i++) {
-                        console.log(lines[0].charAt(i)+": " + lines[0].charCodeAt(i));
-                    }
-                    count1++;
-                }
-                if (lines[0].length > 1000) {
+                // if (count1 < 9) {
+                //     for (var i=66;i<71; i++) {
+                //         console.log(lines[0].charAt(i)+": " + lines[0].charCodeAt(i));
+                //     }
+                //     count1++;
+                // }
+                // if (lines[0].length > 1000) {
                     
-                }
-                console.log('Looking at ' + lines.length + ' lines in ' + oneFileData.fileName + ". first line is " + lines[0].length + " chars long");
+                // }
+                // console.log('Looking at ' + lines.length + ' lines in ' + oneFileData.fileName + ". first line is " + lines[0].length + " chars long");
                 lines.forEach( line => {
                     const origLine = line;
                     
@@ -248,10 +282,19 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                         firstRow = false;
                         if (line.indexOf('Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered,Latitude,Longitude')===0) {
                             algorithm = 2;
+                            for(var i=84; i < 90; i++) {
+                                console.log('Algo1:',line.charAt(i),line.charCodeAt(i));
+                            }
                         } else if (line.indexOf('Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered')===0) {
                             algorithm = 1;
+                            for(var i=65; i < 71; i++) {
+                                console.log('Algo2:',line.charAt(i),line.charCodeAt(i));
+                            }
                         } else if (line.indexOf('FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key')===0) {
                             algorithm = 3;
+                            for(var i=107; i < 113; i++) {
+                                console.log('Algo3:',line.charAt(i),line.charCodeAt(i));
+                            }
                         } else {
                             console.log('Unknown header first row"' + line + "'");
                             algorithm = false;
@@ -525,4 +568,4 @@ function dateYmdIncrement(dateBefore) {
     // return dateAfter;
     return new Date(Date.parse(dateBefore.replace(/-/g, '\/')) + 129600000).toISOString().substring(0,10);
 }
-app.listen(port, () => console.log(`Corona Virus Data API Server listening on port ${port}!`))
+app.listen(serverPort, () => console.log(`Corona Virus Data API Server listening on port ${serverPort} for requests from port ${clientPort}!`))
