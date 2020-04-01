@@ -46,23 +46,23 @@ const statesByCode = require('./states');
  * to give the react port number.
  * 
  * Heroku uses port forwarding from port 80 to arbritrary ports for its many processes. On node.js on heroku, 
- * process.env.port is defined to tell this server.js what port incoming requests are being forwarded to.
+ * process.env.PORT is defined to tell this server.js what port incoming requests are being forwarded to.
  * 
- * To set the process.env.port in local dev environment, we would define a PORT environment variable.
+ * To set the process.env.PORT in local dev environment, we would define a PORT environment variable.
  * BUT we can't use PORT env var as that also tells creat-react-app what port to run on, creating a conflict
  * as bother server.js and create-react-app want to run on the same port.
  * 
  * So we find what we need to know:
  * 1) in this server.js file:
- *   1.1) Listen On: If process.env.REACT_APP_API_PORT is truthy, use it, if not use process.env.port
- *   1.2) If process.env.REACT_APP_API_PORT is truthy, use 3000, if not use process.env.port
+ *   1.1) Listen On: If process.env.REACT_APP_API_PORT is truthy, use it, if not use process.env.PORT
+ *   1.2) If process.env.REACT_APP_API_PORT is truthy, use 3000, if not use process.env.PORT
  * 2) in React Client:
  *   2.1) If process.env.REACT_APP_API_PORT is truthy, use 5000, if not use same port you are running on
  */
 const reactAppApiPort = process.env.REACT_APP_API_PORT;
 console.log('reactAppApiPort=' + reactAppApiPort);
-const clientPort = reactAppApiPort ? 3000 : process.env.port;
-const serverPort = (reactAppApiPort ? reactAppApiPort : process.env.port);
+const clientPort = reactAppApiPort ? 3000 : process.env.PORT;
+const serverPort = (reactAppApiPort ? reactAppApiPort : process.env.PORT);
 console.log("Client Port:" + clientPort + "; Server Port: " + serverPort + ";");
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(function (req, res, next) {
