@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 require('dotenv').config();
+const slugify = require('./src/utilities.js').slugify;
 const johnHopkinsDataPath = './johnhopkinsdata/';
 const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/';
 // const fileNamesTimeSeries = {
@@ -65,6 +66,7 @@ const clientPort = reactAppApiPort ? 3000 : process.env.PORT;
 const serverPort = (reactAppApiPort ? reactAppApiPort : process.env.PORT);
 console.log("Client Port:" + clientPort + "; Server Port: " + serverPort + ";");
 app.use(express.static(path.join(__dirname, 'build')));
+
 app.use(function (req, res, next) {
     //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:80');
     const host = req.get('host'); // NOTE host is the fqdn:port
@@ -112,6 +114,38 @@ app.get('/data/:requestedLocationSlug/:includeDescendants', (req, res) => {
         }
     })
 })
+app.get('/csc', (req,res) => {
+    console.log('/csc country state county called');
+    getDataFromDailyReports( false, false, (error, countriesArray, states, regions, dataByLocationDate) => {
+        if (error) {
+            res.status(500).send('Internal error occured getting countries states counties list')
+        } else {
+            var countryOptions = [];
+            var longest=0;
+            var lon = '';
+            var byLength = [];
+            countriesArray.forEach( country => {
+                const value = slugify(country);
+                if (country.length > longest) {
+                    longest = country.length;
+                    lon = country;
+                };
+                byLength[country.length] = country;
+                countryOptions.push({
+                    value: value,
+                    label: country
+                });
+            })
+            //console.log(lon + " is " + longest + "chars.");
+            //console.log(byLength);
+            res.send({
+                countryOptions,
+                states,
+                regions
+            });
+        }
+    });
+});
 app.get('/areas', (req, res) => {
     //getCountriesAndStatesFromTimeSeries( (error, countries, states) => {
     console.log('/areas called');
@@ -167,63 +201,6 @@ function getCsvFiles(dirname) {
   });
 }
 
-// function getTimeSeriesFileLines(fileName) {
-//     return new Promise( (resolve, reject) => {
-//         fs.readFile(dirNameTimeSeries + fileName + ".csv",'utf-8',(err, data) => {
-//             if (err) reject(err);
-//             console.log('getTimeSeriesFileLines data',data);
-//             const lines = data.split("\n");
-            
-//             // for(var i=0; i<100; i++) {
-//             //     console.log(data.charCodeAt(i));
-//             // }
-//             resolve(lines);
-//         });
-//     });
-// }
-// function getCountriesAndStatesFromTimeSeries(callback) {
-//     var countries = [];
-//     var statesByCountry = {};
-//     var getLinePromises = [];
-//     for(var type in fileNamesTimeSeries) {
-//         const fileName = fileNamesTimeSeries[type];
-//         getLinePromises.push(getTimeSeriesFileLines(fileName))
-//     }
-    
-//     Promise.all(getLinePromises)
-//     .then(allFileLines => {
-//         allFileLines.forEach((lines) => {
-//             var firstRow = true;
-//             lines.forEach( line => {
-//                 if (firstRow) {
-//                     firstRow = false;
-//                 } else {
-//                     const [state, country] = line.split(",",2);
-//                     if (country && countries.indexOf(country) === -1) {
-//                         countries.push(country);
-//                     }
-//                     if (state) {
-//                         if (statesByCountry[country]) {
-//                             if (statesByCountry[country].indexOf(state) === -1) {
-//                                 statesByCountry[country].push(state);
-//                             } else {
-//                                 statesByCountry[country] = [state];
-//                             }
-//                         } else {
-//                             statesByCountry[country] = [state];
-//                         }
-//                     }
-//                 }
-//             });
-            
-//         });
-//         callback(false, countries, statesByCountry );
-//     })
-//     .catch(error  => {
-//         console.error(error);
-//         callback(error);
-//     });
-// }
 function getDailyReportFileLines(fileName) {
     return new Promise( (resolve, reject) => {
         fs.readFile(dirNameDailyReports + fileName,'utf-8',(err, data) => {
@@ -282,24 +259,15 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                         firstRow = false;
                         if (line.indexOf('Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered,Latitude,Longitude')===0) {
                             algorithm = 2;
-                            for(var i=84; i < 90; i++) {
-                                console.log('Algo1:',line.charAt(i),line.charCodeAt(i));
-                            }
                         } else if (line.indexOf('Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered')===0) {
                             algorithm = 1;
-                            for(var i=65; i < 71; i++) {
-                                console.log('Algo2:',line.charAt(i),line.charCodeAt(i));
-                            }
                         } else if (line.indexOf('FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key')===0) {
                             algorithm = 3;
-                            for(var i=107; i < 113; i++) {
-                                console.log('Algo3:',line.charAt(i),line.charCodeAt(i));
-                            }
                         } else {
                             console.log('Unknown header first row"' + line + "'");
                             algorithm = false;
                         }
-                        console.log(lines.length + " lines for date " + fileDate + " algorithm " + algorithm);
+                        //console.log(lines.length + " lines for date " + fileDate + " algorithm " + algorithm);
                     } else {
                         if (algorithm) {
                             for(strFrom in replacements){
@@ -527,20 +495,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
         callback('error getting csv files in getDataFromDailyReports:');
     });
 }
-function slugify(string) {
-    const a = 'àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;'
-    const b = 'aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------'
-    const p = new RegExp(a.split('').join('|'), 'g')
-  
-    return string.toString().toLowerCase()
-      .replace(/\s+/g, '-') // Replace spaces with -
-      .replace(p, c => b.charAt(a.indexOf(c))) // Replace special characters
-      .replace(/&/g, '-and-') // Replace & with 'and'
-      .replace(/[^\w\-]+/g, '') // Remove all non-word characters
-      .replace(/\-\-+/g, '-') // Replace multiple - with single -
-      .replace(/^-+/, '') // Trim - from start of text
-      .replace(/-+$/, '') // Trim - from end of text
-}
+
 function dateYmdDiff(dateStart,dateEnd) {
     return Math.floor(
         (

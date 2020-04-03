@@ -1,0 +1,42 @@
+.App {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 25px 35px 60px 1fr;
+  margin: 5px;
+  border: 1px blue solid;
+  border-radius: 10px;
+  padding:5px;
+}
+.Header {
+  font-size: large;
+}
+.Acknowledge {
+  font-size: small;
+  display: flex;
+  align-items: center;
+}
+.Filters {
+display:flex;
+align-items: center;
+flex-wrap: wrap;
+}
+.FilterItem {
+  display:flex;
+  font-style: bold;
+  align-items: center;
+}
+.FilterItemGrow {
+  display:flex;
+  font-style: bold;
+  align-items: center;
+  flex-grow:1;
+}
+.SelectAreas {
+  width:250px;
+}
+.SelectAreasLabel {
+  width:auto;
+}
+.Graph {
+
+}
