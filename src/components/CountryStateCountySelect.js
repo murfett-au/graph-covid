@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import Select from 'react-select';
 const { slugify } = require('../utilities.js');
 export default function CountryStateCountySelect(props) {
-    const [ selectedCountry, setSelectedCountry ] = useState({country: null});
-    const [ selectedState, setSelectedState ] = useState({state:null});
+  const includeAll = { label: '-- Include All --',value: ''};
+    const [ selectedCountry, setSelectedCountry ] = useState({country: {label:'Australia', value:'australia'}});
+    const [ selectedState, setSelectedState ] = useState({state:includeAll});
     const [ selectedRegion, setSelectedRegion ] = useState({region: null});
     const [ inclCases, setInclCases ] = useState({ cases: true});
     const [ inclDeaths, setInclDeaths ] = useState({ deaths: true});
     const [ inclRecovered, setInclRecovered ] = useState({ recovered: true })
-    const includeAll = { label: '-- Include All --',value: ''};
+    
     /**
      * changeGeography is one function called by changes to country, state and county,
      * to allow centralised common code.
@@ -32,6 +33,37 @@ export default function CountryStateCountySelect(props) {
           break;
       }
     }
+    const toggleIncl = (which) => {
+      switch(which) {
+        case 'cases':
+          if (inclCases.cases) {
+            if (!(inclDeaths.deaths || inclRecovered.recovered )) setInclDeaths({deaths:true});
+            setInclCases({cases:false});
+          } else {
+            setInclCases({cases:true});
+          }
+        break;
+        case 'deaths':
+          if (inclDeaths.deaths) {
+            if (!( inclCases.cases || inclRecovered.recovered )) setInclCases({cases: true});
+            setInclDeaths({deaths: false});
+          } else {
+            setInclDeaths({deaths: true});
+          }
+        break;
+        case 'recovered':
+          if (inclRecovered.recovered) {
+            if (!( inclCases.cases || inclDeaths.deaths )) setInclCases({cases: true});
+            setInclRecovered({recovered: false});
+          } else {
+            setInclRecovered({recovered: true});
+          }
+        break;
+        default:
+          console.log('invlaid:' + which);
+        break;
+      }
+    }
     const styleSelectCountry = {
       container: provided => ({
         ...provided,
@@ -50,23 +82,39 @@ export default function CountryStateCountySelect(props) {
         width: 175
       })
     };
+    const addToGraph = ()=>{
+      props.addToGraph({
+        include:{
+          cases: inclCases.cases,
+          deaths: inclDeaths.deaths,
+          recovered: inclRecovered.recovered
+        },
+        countrySlug: selectedCountry.country.value,
+        countryName: selectedCountry.country.label,
+        stateSlug: selectedState.state.value,
+        stateName: selectedState.state.label,
+        regionSlug: selectedRegion.region ? selectedRegion.region.value : '',
+        regionName: selectedRegion.region ? selectedRegion.region.label : '',
+      })
+    }
     if (props.countryOptions) {
-      var checkboxes = <div className='WhatData'>
-        <label className='WhatDatum' htmlFor='cases'     onClick={()=>{setInclCases({cases: !inclCases.cases})}}>
+      var checkboxes = <div className='WhatData' key='WhatData'>
+        <label className='WhatDatum' htmlFor='cases' onClick={()=>{toggleIncl('cases')}}>
           <input className='WhatDatum' type='checkbox' checked={inclCases.cases} readOnly />
           Cases
         </label>
-        <label className='WhatDatum' htmlFor='recovered' onClick={()=>{setInclRecovered({recovered: !inclRecovered.recovered})}}>
+        <label className='WhatDatum' htmlFor='recovered' onClick={()=>{toggleIncl('recovered')}}>
           <input className='WhatDatum' type='checkbox' checked={inclRecovered.recovered} readOnly />
           Recovered
         </label>
-        <label className='WhatDatum' htmlFor='deaths' onClick={()=>{setInclDeaths({deaths: !inclDeaths.deaths})}}>
+        <label className='WhatDatum' htmlFor='deaths' onClick={()=>{toggleIncl('deaths')}}>
           <input className='WhatDatum' type='checkbox' checked={inclDeaths.deaths} readOnly />
           Deaths
         </label>
         
       </div>
         var geographyItems = [checkboxes];
+        
         geographyItems.push(<label key='country' className='GeographyItem' htmlFor='select-country'>
           <span className='GeographyLabel'>Country:</span>
           <Select
@@ -114,10 +162,10 @@ export default function CountryStateCountySelect(props) {
                   onChange = { value => {changeGeography('region',value)}}
                 />
               </label>);
-            } else {
-              console.log('selected state:',selectedState);
-              console.log('selected country:',selectedCountry);
             }
+        }
+        if (selectedCountry.country) {
+          geographyItems.push(<button className='GeographyButton' key='addButton' onClick={()=>addToGraph()}>Add to graph</button>)
         }
         return <div className='GeographyItems'>{geographyItems}</div>;
     } else {

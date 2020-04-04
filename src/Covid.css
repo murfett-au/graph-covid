@@ -1,7 +1,7 @@
 .Covid {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 25px 35px 48px 1fr;
+  grid-template-rows: 25px 25px 48px 1fr;
   margin:5px;
 }
 .Header {
@@ -30,6 +30,14 @@
 .GeographySelect {
   margin-left: 3px;
 }
+.GeographyButton {
+  height: 30px;
+  border-radius: 3px;
+  align-self: center;
+  margin-left:5px;
+  background-color: lightgreen;
+
+}
 .WhatData {
   display:flex;
   flex-direction: column;
@@ -45,4 +53,21 @@ label.WhatDatum:first-child {
 }
 input.WhatDatum {
 margin: 0px;
+}
+.Message {
+  border-radius: 4px;
+  padding:4px;
+  margin: 2px 0px 2px 0px;
+  display: flex;
+  justify-content: space-between;
+}
+.MessageMsg {
+  background-color: rgb(0,166,90);
+  border-color: rgb(214, 233, 198);
+  color: white;
+}
+.MessageErr {
+  background-color: rgb(205,2,0);
+  border-color: rgb(205,2,0);
+  color: white;
 }
