@@ -1,11 +1,8 @@
-.App {
+.Covid {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 25px 35px 60px 1fr;
-  margin: 5px;
-  border: 1px blue solid;
-  border-radius: 10px;
-  padding:5px;
+  grid-template-rows: 25px 35px 48px 1fr;
+  margin:5px;
 }
 .Header {
   font-size: large;
@@ -15,28 +12,37 @@
   display: flex;
   align-items: center;
 }
-.Filters {
-display:flex;
-align-items: center;
-flex-wrap: wrap;
-}
-.FilterItem {
-  display:flex;
-  font-style: bold;
-  align-items: center;
-}
-.FilterItemGrow {
-  display:flex;
-  font-style: bold;
-  align-items: center;
-  flex-grow:1;
-}
-.SelectAreas {
-  width:250px;
-}
-.SelectAreasLabel {
-  width:auto;
-}
-.Graph {
 
+.GeographyItems {
+  display: flex;
+}
+.GeographyItem:not(:first-child) {
+  margin-left:5px;
+}
+.GeographyItem {
+  display: flex;
+  align-items: center;
+  
+}
+.GeographyLabel {
+  
+}
+.GeographySelect {
+  margin-left: 3px;
+}
+.WhatData {
+  display:flex;
+  flex-direction: column;
+}
+label.WhatDatum {
+  font-size: 10px;
+  margin: 1px 0px 0px 0px;
+  display:flex;
+  align-items: center;
+}
+label.WhatDatum:first-child {
+  margin: 0px;
+}
+input.WhatDatum {
+margin: 0px;
 }

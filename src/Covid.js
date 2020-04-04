@@ -11,6 +11,7 @@ function Covid() {
   var [ errors, setErrors ] = useState(false);
   var [ countryOptions,setCountryOptions ] = useState(false);
   var [ states,setStates ] = useState(false);
+  var [ regions,setRegions ] = useState(false);
   useEffect(() => {
     const fetchAreasData = async () => {
       setErrors(false);
@@ -20,11 +21,12 @@ function Covid() {
         if (apiPort !== 80) {
           axios.defaults.baseURL = window.location.protocol + "//" + window.location.hostname + ":" + apiPort;
         }
-        const result = await axios('/csc');
+        const result = await axios('/csr');
         
         if (result.data) {
           setCountryOptions(result.data.countryOptions);
           setStates(result.data.states);
+          setRegions(result.data.regions);
         } else {
           setErrors(['Api response did not contain any data...']);
         }
@@ -35,21 +37,27 @@ function Covid() {
     };
     fetchAreasData();
   }, []);
-
+  var content;
   if (errors && errors.length>0) {
-    return <div>
+    content = <div>
       <b>The following errors occured:</b>
       <ul>
         {errors.map( (error,index) => { return <li key={index}>{error}</li>})}
       </ul>
     </div>
   } else if (isLoading) {
-    return <div className="Loading">Loading</div>;
+    content = <div className="Loading">Loading</div>;
   } else {
-    return <CountryStateCountySelect
+    content = <CountryStateCountySelect
       countryOptions= {countryOptions}
       states = {states}
+      regions = {regions}
     />
   }
+  return <div className='Covid'>
+    <div className ="Header">COVID-19 Doubling Times</div>
+    <div className="Acknowledge"><div>Data Source: John Hopkins University via <a href='https://github.com/CSSEGISandData/COVID-19'>GitHub</a></div></div>
+    {content}
+  </div>
 }
 export default Covid;

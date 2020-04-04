@@ -28,6 +28,8 @@ const replacements = {
     '"Bahamas, The"': 'Bahamas',
     'View Nam': 'Vietnam',
     'Hong Kong SAR': 'Hong Kong',
+    '" Norfolk County': '"Norfolk County',
+    " County,":",",
 }
 const statesByCode = require('./states');
 //const dirNameTimeSeries = johnHopkinsDataPath + 'csse_covid_19_time_series/';
@@ -114,34 +116,43 @@ app.get('/data/:requestedLocationSlug/:includeDescendants', (req, res) => {
         }
     })
 })
-app.get('/csc', (req,res) => {
-    console.log('/csc country state county called');
-    getDataFromDailyReports( false, false, (error, countriesArray, states, regions, dataByLocationDate) => {
+app.get('/csr', (req,res) => {
+    console.log('/csr country state county called');
+    getDataFromDailyReports( false, false, (error, countriesArray, statesByCountryArray, regionsByCountryStateArray, dataByLocationDate) => {
         if (error) {
             res.status(500).send('Internal error occured getting countries states counties list')
         } else {
-            var countryOptions = [];
-            var longest=0;
-            var lon = '';
-            var byLength = [];
-            countriesArray.forEach( country => {
+            countryOptions = [];
+            const ordered = {};
+            Object.keys(countriesArray).sort().forEach(function(key) {
+              ordered[key] = countriesArray[key];
+            });
+            countriesArray.sort().forEach( country => {
                 const value = slugify(country);
-                if (country.length > longest) {
-                    longest = country.length;
-                    lon = country;
-                };
-                byLength[country.length] = country;
                 countryOptions.push({
                     value: value,
                     label: country
                 });
-            })
-            //console.log(lon + " is " + longest + "chars.");
-            //console.log(byLength);
+            });
+            for(var country in statesByCountryArray) {
+                statesByCountryArray[country] = statesByCountryArray[country].sort();
+            }
+            for (var countryState in regionsByCountryStateArray) {
+                regionsByCountryStateArray[countryState] = regionsByCountryStateArray[countryState].sort();
+            }
+           
+            
+            // Object.keys(states).sort().forEach(function(key) {
+            //   statesSorted[key] = states[key];
+            // });
+            // var regionsSorted = {};
+            // Object.keys(regions).sort().forEach(function(key) {
+            //     regionsSorted[key] = regions[key];
+            //   });
             res.send({
                 countryOptions,
-                states,
-                regions
+                states: statesByCountryArray,
+                regions: regionsByCountryStateArray
             });
         }
     });
@@ -174,7 +185,6 @@ app.get('/areas', (req, res) => {
             Object.keys(areas).sort().forEach(function(key) {
               ordered[key] = areas[key];
             });
-            console.log('getDataFromDailyReports about to return ' + Object.keys(ordered).length + ' areas');
             res.send(ordered);
         }
     });
@@ -364,7 +374,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                                     thisDatumLocationSlug = thisDatumLocationSlug + "_" + slugify(state);
                                     if (region) {
                                         if (regionsByCountryState[country + state]) {
-                                            if (!regionsByCountryState[country + state].indexOf(region) == -1) {
+                                            if (regionsByCountryState[country + state].indexOf(region) == -1) {
                                                 regionsByCountryState[country + state].push(region);
                                             }
                                         } else {
