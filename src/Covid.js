@@ -18,7 +18,10 @@ function Covid() {
   var [ regions,setRegions ] = useState(false);
   var [ dataSets, setDataSets ] = useState([]);
   var [ graphLoading, setGraphLoading] = useState({graphLoading: true});
-  var [ messages, setMessages ] = useState(["Welcome to John Murfett's Covid-19 analysis tool. Click the X on the right to remove this message"]);
+  var [ messages, setMessages ] = useState([
+    "Welcome to John Murfett's Covid-19 analysis tool. Click the X on the right to remove this message",
+    "Select a country / state / region / county, and click 'Add to graph' to begin."
+  ]);
   function errorAdd(error) {
     let newErrors;
     if (errors) {
