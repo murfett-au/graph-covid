@@ -10,6 +10,7 @@ export default function CovidGraph(props) {
   useEffect( () => {
     var xStartDateYmd = false;
     var xEndDateYmd = false;
+    var earliestDataFoundYmd = false;
     function fetchData(areaValue) {
       const url = '/data/' + areaValue + '/with';
       if (props.apiPort !== 80) {
@@ -40,6 +41,7 @@ export default function CovidGraph(props) {
             if (xEndDateYmd === false || (dateYmdLast > xEndDateYmd)) {
               xEndDateYmd = dateYmdLast;
             }
+            
           }  
         } else {
           props.addError('Data Api response for ' + data.area + ' response did not contain any data...');
@@ -74,24 +76,60 @@ export default function CovidGraph(props) {
             newAreaData[propertyName] = [];
           };
           var dateYmd = xStartDateYmd;
-          do {
-            const dateForLabel = formatForXAxisLabel(dateYmd);
-            const curDataIndex = curAreaData.dateYmd.indexOf(dateYmd);
-            newAreaData.dateYmd.push(dateYmd);
-            newAreaData.labels.push(dateForLabel);
-            for (let i in areaDataPropertyNames) {
-              const propertyName = areaDataPropertyNames[i];
-              newAreaData[propertyName].splice(newAreaData[propertyName].length,0,(curDataIndex === -1) ? null : curAreaData[propertyName][curDataIndex]);
-            };
-            dateYmd = dateYmdIncrement(dateYmd);
-            if (firstArea) chartLabels.push(dateForLabel);
-          } while (dateYmd <= xEndDateYmd)
+          if (!xStartDateYmd) {
+            console.log('no data for any selected area');
+            
+          } else {
+            do {
+              const dateForLabel = formatForXAxisLabel(dateYmd);
+              const curDataIndex = curAreaData.dateYmd.indexOf(dateYmd);
+              newAreaData.dateYmd.push(dateYmd);
+              newAreaData.labels.push(dateForLabel);
+              for (let i in areaDataPropertyNames) {
+                const propertyName = areaDataPropertyNames[i];
+                newAreaData[propertyName].splice(newAreaData[propertyName].length,0,(curDataIndex === -1) ? null : curAreaData[propertyName][curDataIndex]);
+                // see if there are any datum on this day:
+                
+                if (curAreaData[propertyName][curDataIndex]) {
+                  // truthy data, so let's see if it's earlier than the earlist so far:
+                  if (earliestDataFoundYmd === false || (earliestDataFoundYmd > dateYmd)) {
+                    console.log('replacing ' + earliestDataFoundYmd + ' with ' + dateYmd);
+                    earliestDataFoundYmd = dateYmd;
+                  }
+                };
+              }
+              dateYmd = dateYmdIncrement(dateYmd);
+              if (firstArea) chartLabels.push(dateForLabel);
+            } while (dateYmd <= xEndDateYmd)
+          }
           firstArea=false;
           paddedDataForAllAreas[areaValue] = newAreaData;
+          // now cull all entries before the first entry with zero data:
+          if (earliestDataFoundYmd) {
+            for(let areaValue in paddedDataForAllAreas) {
+              const curAreaData = paddedDataForAllAreas[areaValue];
+              const firstDataIndex = curAreaData.dateYmd.indexOf(earliestDataFoundYmd);
+              if (firstDataIndex !==-1) {
+                if (curAreaData) {
+                  curAreaData['dateYmd'].splice(0,firstDataIndex);
+                  curAreaData['labels'].splice(0,firstDataIndex);
+                  for (let i in areaDataPropertyNames) {
+                    const propertyName = areaDataPropertyNames[i];
+                    curAreaData[propertyName].splice(0,firstDataIndex);
+                  }
+                  
+                }
+              }
+            }
+            let firstDataIndex = chartLabels.indexOf(formatForXAxisLabel(earliestDataFoundYmd));
+            chartLabels.splice(0,firstDataIndex);
+          }
         } else {
           console.log('No data found to pad for ' + areaValue);
           props.addError('No data found to pad for ' + areaValue);
         }
+
+
         //setDataByAreaValue(paddedDataForAllAreas);
         // make a dataset for each property in each area:
         var chartDatasets = [];
@@ -109,7 +147,6 @@ export default function CovidGraph(props) {
               fill:false,
               yAxisID: 'deaths',
             };
-            colourIndex = (colourIndex +1 % pseudoRandomColours.length);
             chartDatasets.push(oneChartData);
             // one one for the doubling rate:
             let anotherChartData = {
@@ -125,6 +162,8 @@ export default function CovidGraph(props) {
             chartDatasets.push(anotherChartData);
           }
         }
+        
+        console.log('display afetr ' + earliestDataFoundYmd);
         setChartData({
           datasets: chartDatasets,
           labels: chartLabels
