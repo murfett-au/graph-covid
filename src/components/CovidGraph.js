@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Line} from 'react-chartjs-2';
 import {chartOptionsFixed} from '../chartOptions.js'
-const pseudoRandomColours = [ 'rgb(255,0,0)','rgb(0,255,0)', 'rgb(0,0,255)','rgb(255,255,0)','rgb(0,255,255)','rgb(255,0,255)','rgb(127,0,127)'];
+const pseudoRandomColours = [ 'rgb(0,0,0)','rgb(255,0,0)', 'rgb(255,0,0)','rgb(0,255,0)','rgb(0,0,255)','rgb(255,0,255)','rgb(128,0,0)','rgb(128,128,0)','rgb(0,128,0)','rgb(128,0,128)','rgb(0,128,128)','rgb(0,0,128)'];
 const { dateYmdIncrement, formatForXAxisLabel } = require('../utilities.js');
 const areaDataPropertyNamesAll = ['deaths','deathDoublingDays','cases','caseDoublingDays','recovered,recoveredDoublingDays'];
 export default function CovidGraph(props) {
