@@ -11,7 +11,7 @@ const chartDataLabelPrefix = {
   'cases': 'Cases - ',
   'casesDoublingDays' : 'Growth in Cases - ',
   'recovered': 'Recovered - ',
-  'recoveredDoublingDays': 'Growth in Recovered - ',
+  'recoveredDoublingDays': 'Recovery Growth - ',
 };
 const chartDataLabelSuffix = {
   'deaths': " (RHS)",
