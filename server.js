@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 require('dotenv').config();
-const slugify = require('./src/utilities.js').slugify;
+const {slugify, dateYmdIncrement, formatForXAxisLabel}  = require('./src/utilities.js');
 const johnHopkinsDataPath = './johnhopkinsdata/';
 const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/';
 // const fileNamesTimeSeries = {
@@ -14,9 +14,6 @@ const dirNameDailyReports = johnHopkinsDataPath + 'csse_covid_19_daily_reports/'
 // const monthNamesLong = ["January", "February", "March", "April", "May", "June",
 //   "July", "August", "September", "October", "November", "December"
 // ];
-const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-];
 const replacements = {
     '"Korea, South"': 'South Korea',
     'Iran (Islamic Republic of)': 'Iran',
@@ -30,6 +27,7 @@ const replacements = {
     'Hong Kong SAR': 'Hong Kong',
     '" Norfolk County': '"Norfolk County',
     " County,":",",
+    'Mainland China' : 'China',
 }
 const statesByCode = require('./states');
 //const dirNameTimeSeries = johnHopkinsDataPath + 'csse_covid_19_time_series/';
@@ -462,6 +460,8 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                     labels: [],
                     deaths: [],
                     doublingDays: [],
+                    deathDoublingDays: [],
+                    dateYmd: [],
                 };
                 var curDeaths = 0;
                 
@@ -482,11 +482,14 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                         previousDeaths = curDeaths;
                         previousDate = curDate;
                     }
-                    const curDateFormatted = curDate.substring(8,10) + "-" + monthNames[parseInt(curDate.substring(5,7))-1];
+                    const curDateFormatted = formatForXAxisLabel(curDate);
+                    graphData.area = requestedLocationSlug;
                     graphData.labels.push(curDateFormatted);
                     graphData.deaths.push(curDeaths);
                     graphData.doublingDays.push(doublingDays);
-                    
+                    graphData.deathDoublingDays.push(doublingDays);
+                    graphData.dateYmd.push(curDate);
+                    graphData.includeDescendants = includeDescendants;
                     curDate = dateYmdIncrement(curDate);
                     
                 }
@@ -516,21 +519,5 @@ function dateYmdDiff(dateStart,dateEnd) {
           )
         ) / 86400000);
 }
-function dateYmdIncrement(dateBefore) {
-    // console.log('Incrementing ' + dateBefore);
-    // var dateAfter = dateBefore.replace(/-/g, '\/');
-    // console.log(dateAfter);
-    // var dateAfter = Date.parse(dateAfter);
-    // console.log(dateAfter);
-    // var dateAfter = dateAfter + (86400000*1.5);
-    // console.log(dateAfter);
-    // var dateAfter = new Date(dateAfter);
-    // console.log(dateAfter);
-    // var dateAfter = dateAfter.toISOString();
-    // console.log(dateAfter);
-    // var dateAfter = dateAfter.substring(0,10);
-    // console.log('Result ' + dateAfter);
-    // return dateAfter;
-    return new Date(Date.parse(dateBefore.replace(/-/g, '\/')) + 129600000).toISOString().substring(0,10);
-}
+
 app.listen(serverPort, () => console.log(`Corona Virus Data API Server listening on port ${serverPort} for requests from port ${clientPort}!`))

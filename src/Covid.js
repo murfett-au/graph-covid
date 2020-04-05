@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import CountryStateCountySelect from './components/CountryStateCountySelect';
 import Messages from './components/Messages';
 import Datasets from './components/Datasets';
+import CovidGraph from './components/CovidGraph';
 import axios from 'axios';
 import './Covid.css';
+
 //import { slugify } from './utilities.js';
 
 const apiPort = process.env.REACT_APP_API_PORT || 80; // gets value of REACT_APP_API_PORT environment valiable.
@@ -15,8 +17,18 @@ function Covid() {
   var [ states,setStates ] = useState(false);
   var [ regions,setRegions ] = useState(false);
   var [ dataSets, setDataSets ] = useState([]);
-  var [ messages, setMessages ] = useState(["Welcome to John Murfett's Covid-19 analysis tool"]);
-
+  var [ graphLoading, setGraphLoading] = useState({graphLoading: true});
+  var [ messages, setMessages ] = useState(["Welcome to John Murfett's Covid-19 analysis tool. Click the X on the right to remove this message"]);
+  function addError(error) {
+    let newErrors;
+    if (errors) {
+      newErrors = [...errors];
+      newErrors.push(error);
+    } else {
+      newErrors = [error];
+    }
+    setErrors(newErrors);
+  }
   useEffect(() => {
     const fetchAreasData = async () => {
       setErrors(false);
@@ -33,10 +45,10 @@ function Covid() {
           setStates(result.data.states);
           setRegions(result.data.regions);
         } else {
-          setErrors(['Api response did not contain any data...']);
+          addError('Api response did not contain any data...');
         }
       } catch (error) {
-        setErrors(['The api code returned the following error: ' + error.message]);
+        addError('The api code returned the following error: ' + error.message);
       }
       setIsLoading(false);
     };
@@ -53,20 +65,25 @@ function Covid() {
     msgs.splice(id,1);
     setMessages(msgs);
   }
-  function dataSetAdd(dataSet) {
-    var newDataSet = dataSets;
-    dataSets.forEach(dataSet => {
-      if (dataSet.area === newDataSet.area) {
-        messageAdd('You already have a data set for that area, please remove the existing data set before adding this one.');
+  function dataSetAdd(newDataSet) {
+    var newDataSets = [...dataSets];
+    var addAtIndex = false;
+    dataSets.forEach( (existingDataSet,index) => {
+      if (existingDataSet.label === newDataSet.label) {
+        addAtIndex = index;
         return;
       }
     });
-    newDataSet.push(dataSet);
-    setDataSets(newDataSet);
+    if (addAtIndex) {
+      newDataSets[addAtIndex] = newDataSet;
+    } else {
+      newDataSets.push(newDataSet);
+    }
+    setDataSets(newDataSets);
   }
   function dataSetRemove(id) {
-    var dsets = dataSets;
-    dataSets.splice(id,1);
+    var dsets = [...dataSets];
+    dsets.splice(id,1);
     setDataSets(dsets);
   }
   var content = null;
@@ -78,6 +95,7 @@ function Covid() {
       states = {states}
       regions = {regions}
       addToGraph = {dataSetAdd}
+      messageAdd = {messageAdd}
     />
   }
   return <div className='Covid'>
@@ -94,9 +112,17 @@ function Covid() {
       messages = {messages}
     />
     <Datasets
-      dimiss={dataSetRemove}
+      dataSetRemove={dataSetRemove}
       dataSets = {dataSets}
     />
+    {(dataSets.length > 0) ?
+    <CovidGraph 
+      addError = {addError}
+      dataSets = {dataSets}
+      apiPort = {apiPort}
+      setGraphLoading = {setGraphLoading}
+      graphLoading = {graphLoading}
+    /> : null}
   </div>
 }
 export default Covid;

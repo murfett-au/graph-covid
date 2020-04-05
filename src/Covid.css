@@ -36,7 +36,13 @@
   align-self: center;
   margin-left:5px;
   background-color: lightgreen;
-
+}
+.RemoveButton {
+  height: 20px;
+  border-radius: 3px;
+  align-self: center;
+  margin-left:5px;
+  background-color: lightgray;
 }
 .WhatData {
   display:flex;
@@ -70,4 +76,10 @@ margin: 0px;
   background-color: rgb(205,2,0);
   border-color: rgb(205,2,0);
   color: white;
+}
+.DataSetListOne {
+  margin-left: 10px;
+}
+.DataSetsHeading {
+  font-weight: 600;
 }

@@ -6,9 +6,9 @@ export default function CountryStateCountySelect(props) {
     const [ selectedCountry, setSelectedCountry ] = useState({country: {label:'Australia', value:'australia'}});
     const [ selectedState, setSelectedState ] = useState({state:includeAll});
     const [ selectedRegion, setSelectedRegion ] = useState({region: null});
-    const [ inclCases, setInclCases ] = useState({ cases: true});
+    const [ inclCases, setInclCases ] = useState({ cases: false});
     const [ inclDeaths, setInclDeaths ] = useState({ deaths: true});
-    const [ inclRecovered, setInclRecovered ] = useState({ recovered: true })
+    const [ inclRecovered, setInclRecovered ] = useState({ recovered: false })
     
     /**
      * changeGeography is one function called by changes to country, state and county,
@@ -83,20 +83,47 @@ export default function CountryStateCountySelect(props) {
       })
     };
     const addToGraph = ()=>{
-      props.addToGraph({
+      var dataSet = {
         include:{
           cases: inclCases.cases,
           deaths: inclDeaths.deaths,
           recovered: inclRecovered.recovered
         },
-        countrySlug: selectedCountry.country.value,
-        countryName: selectedCountry.country.label,
-        stateSlug: selectedState.state.value,
-        stateName: selectedState.state.label,
-        regionSlug: selectedRegion.region ? selectedRegion.region.value : '',
-        regionName: selectedRegion.region ? selectedRegion.region.label : '',
-      })
-    }
+      };
+      var value = '';
+      var label = '';
+      if (selectedCountry.country) {
+        dataSet.country = selectedCountry.country;
+        value = selectedCountry.country.value;
+        label = selectedCountry.country.label;
+        if (selectedState.state) {
+          dataSet.state  = selectedState.state;
+          if (selectedState.state.value !== '') {
+            value += '_'   + selectedState.state.value;
+            label += ' - ' + selectedState.state.label
+            if (selectedRegion.region) {
+              dataSet.region = selectedRegion.region;
+              if (selectedRegion.region.value !== '') {
+                value += '_'   + selectedRegion.region.value;
+                label += ' - ' + selectedRegion.region.label;
+              }
+            } else {
+              dataSet.region = null;
+            }
+          }
+        } else {
+          dataSet.state = null;
+        }
+      } else {
+        props.messageAdd('Add to graph button should not be displayed when no country selected!');
+        return;
+      }
+      dataSet.value = value;
+      dataSet.label = label;
+      props.addToGraph(dataSet);
+    };
+      
+    
     if (props.countryOptions) {
       var checkboxes = <div className='WhatData' key='WhatData'>
         <label className='WhatDatum' htmlFor='cases' onClick={()=>{toggleIncl('cases')}}>
