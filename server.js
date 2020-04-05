@@ -138,15 +138,6 @@ app.get('/csr', (req,res) => {
             for (var countryState in regionsByCountryStateArray) {
                 regionsByCountryStateArray[countryState] = regionsByCountryStateArray[countryState].sort();
             }
-           
-            
-            // Object.keys(states).sort().forEach(function(key) {
-            //   statesSorted[key] = states[key];
-            // });
-            // var regionsSorted = {};
-            // Object.keys(regions).sort().forEach(function(key) {
-            //     regionsSorted[key] = regions[key];
-            //   });
             res.send({
                 countryOptions,
                 states: statesByCountryArray,
@@ -427,16 +418,18 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                                             }
                                         }
                                         if (! dataByLocationDate[requestedLocationSlug] ) {
-                                            dataByLocationDate[requestedLocationSlug] = {};
+                                            dataByLocationDate[requestedLocationSlug] = {
+                                                areaLabel: country + (state?(' - ' + state + (region?(' - ' + region):'')):'')
+                                            };
                                         }
 
                                         if (dataByLocationDate[requestedLocationSlug][fileDate]) {
                                             dataByLocationDate[requestedLocationSlug][fileDate].deaths += deathsInt;
-                                            dataByLocationDate[requestedLocationSlug][fileDate].confirmed += confirmedInt;
+                                            dataByLocationDate[requestedLocationSlug][fileDate].cases += confirmedInt;
                                             dataByLocationDate[requestedLocationSlug][fileDate].recovered += recoveredInt;
                                         } else {
                                             dataByLocationDate[requestedLocationSlug][fileDate] = {
-                                                confirmed: confirmedInt,
+                                                cases: confirmedInt,
                                                 deaths: deathsInt,
                                                 recovered: recoveredInt,
                                             }
@@ -452,42 +445,61 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
             
             if (dateEarliest) {
                 // add rate of growth data:
-                
+                var previousCases = dataByLocationDate[requestedLocationSlug][dateEarliest].cases;
                 var previousDeaths = dataByLocationDate[requestedLocationSlug][dateEarliest].deaths;
+                var previousRecovered = dataByLocationDate[requestedLocationSlug][dateEarliest].recovered;
                 var previousDate = dateEarliest;
                 var curDate = dateYmdIncrement(dateEarliest);
                 var graphData = {
                     labels: [],
+                    cases: [],
+                    casesDoublingDays: [],
                     deaths: [],
-                    doublingDays: [],
-                    deathDoublingDays: [],
+                    deathsDoublingDays: [],
+                    recovered: [],
+                    recoveredDoublingDays: [],
                     dateYmd: [],
+                    area: dataByLocationDate[requestedLocationSlug].areaLabel,
                 };
+                var curCases = 0;
                 var curDeaths = 0;
-                
+                var curRecovered = 0;
                 while (curDate <= dateLatest) {
-                    var doublingDays = null;
+                    var doublingDaysCases = null;
+                    var doublingDaysDeaths = null;
+                    var doublingDaysRecovered = null;
                     if (dataByLocationDate[requestedLocationSlug][curDate]) {
                         // data exists for curDate so can do the comparison:
                         const dayDiff = dateYmdDiff(previousDate,curDate);
+                        curCases = dataByLocationDate[requestedLocationSlug][curDate].cases;
+                        if (curCases && previousCases) {
+                            doublingDaysCases = (Math.LN2/Math.log(curCases/previousCases)) * dayDiff;
+                            //dataByLocationDate[requestedLocationSlug][curDate].caseDoublingTime = doublingDaysCases;
+                        }
                         curDeaths = dataByLocationDate[requestedLocationSlug][curDate].deaths;
                         if (curDeaths && previousDeaths) {
-                            // console.log("from " + previousDeaths + " to " + curDeaths + " in " + dayDiff + " days:");
-                            // console.log('cur/prev:',curDeaths/previousDeaths);
-                            // console.log('log:',Math.log(curDeaths / previousDeaths));
-                            // console.log('lon2/log:', (Math.LN2/Math.log(curDeaths/previousDeaths)));
-                            doublingDays = (Math.LN2/Math.log(curDeaths/previousDeaths)) * dayDiff;
-                            dataByLocationDate[requestedLocationSlug][curDate].deathDoublingTime = doublingDays;
+                            doublingDaysDeaths = (Math.LN2/Math.log(curDeaths/previousDeaths)) * dayDiff;
+                            //dataByLocationDate[requestedLocationSlug][curDate].deathsDoublingTime = doublingDaysDeaths;
                         }
+                        curRecovered = dataByLocationDate[requestedLocationSlug][curDate].recovered;
+                        if (curRecovered && previousRecovered) {
+                            doublingDaysRecovered = (Math.LN2/Math.log(curRecovered/previousRecovered)) * dayDiff;
+                            //dataByLocationDate[requestedLocationSlug][curDate].recoveredDoublingTime = doublingDaysRecovered;
+                        }
+                        previousCases = curCases;
                         previousDeaths = curDeaths;
+                        previousRecovered = curRecovered;
                         previousDate = curDate;
                     }
                     const curDateFormatted = formatForXAxisLabel(curDate);
-                    graphData.area = requestedLocationSlug;
+                    
                     graphData.labels.push(curDateFormatted);
+                    graphData.cases.push(curCases);
+                    graphData.casesDoublingDays.push(doublingDaysCases);
                     graphData.deaths.push(curDeaths);
-                    graphData.doublingDays.push(doublingDays);
-                    graphData.deathDoublingDays.push(doublingDays);
+                    graphData.deathsDoublingDays.push(doublingDaysDeaths);
+                    graphData.recovered.push(curRecovered);
+                    graphData.recoveredDoublingDays.push(doublingDaysRecovered);
                     graphData.dateYmd.push(curDate);
                     graphData.includeDescendants = includeDescendants;
                     curDate = dateYmdIncrement(curDate);

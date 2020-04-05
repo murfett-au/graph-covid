@@ -5,11 +5,24 @@ export const chartOptionsFixed = {
     },
     elements: {
       line: {
-        fill: false
+        fill: false,
       }
     },
+    legend:{
+      position: 'right',
+      onClick: function(e, legendItem) {
+        var index = legendItem.datasetIndex;
+        var ci = this.chart;
+        var meta = ci.getDatasetMeta(index);
+    
+        // See controller.isDatasetVisible comment
+        meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+    
+        // We hid a dataset ... rerender the chart
+        ci.update();
+    }
+    },
     scales: {
-      
       yAxes: [
         {
           id: 'doubling-days',
@@ -25,7 +38,7 @@ export const chartOptionsFixed = {
             display: true
           },
           labels: {
-            show: true
+            show: true,
           },
           ticks: {
               reverse: true,
@@ -35,10 +48,10 @@ export const chartOptionsFixed = {
             },
         },
         {
-          id: 'deaths',
+          id: 'number',
           scaleLabel: {
             display: true,
-            labelString: 'Deaths',
+            labelString: 'Deaths / Cases',
           },
           type: 'linear',
           display: true,

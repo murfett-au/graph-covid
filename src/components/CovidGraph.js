@@ -2,9 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Line} from 'react-chartjs-2';
 import {chartOptionsFixed} from '../chartOptions.js'
-const pseudoRandomColours = [ 'rgb(0,0,0)','rgb(255,0,0)', 'rgb(255,0,0)','rgb(0,255,0)','rgb(0,0,255)','rgb(255,0,255)','rgb(128,0,0)','rgb(128,128,0)','rgb(0,128,0)','rgb(128,0,128)','rgb(0,128,128)','rgb(0,0,128)'];
+const pseudoRandomColours = [ 'rgb(0,0,0)', 'rgb(255,0,0)','rgb(0,255,0)','rgb(0,0,255)','rgb(255,0,255)','rgb(128,0,0)','rgb(128,128,0)','rgb(0,128,0)','rgb(128,0,128)','rgb(0,128,128)','rgb(0,0,128)'];
 const { dateYmdIncrement, formatForXAxisLabel } = require('../utilities.js');
-const areaDataPropertyNamesAll = ['deaths','deathDoublingDays','cases','caseDoublingDays','recovered,recoveredDoublingDays'];
+const areaDataPropertyNamesAll = ['deaths','deathsDoublingDays','cases','casesDoublingDays','recovered','recoveredDoublingDays'];
+const chartDataLabelPrefix = {
+  'deaths': "R.H. Scale: Deaths - ",
+  'deathsDoublingDays': 'L.H. Scale: Deaths - ',
+  'cases': 'R.H. Scale: Cases - ',
+  'casesDoublingDays' : 'L.H. Scale: Cases - ',
+  'recovered': 'R.H Scale: Recovered - ',
+  'recoveredDoublingDays': 'L.H. Scale: Recovered - ',
+}
 export default function CovidGraph(props) {
   var [ chartData, setChartData ] = useState(false);
   useEffect( () => {
@@ -24,14 +32,12 @@ export default function CovidGraph(props) {
     });
     Promise.all(promises)
     .then( allResults =>{
-      console.log('All ' + promises.length + ' promises have resolved.');
       var newDataForAllAreas = {};
       allResults.forEach(result => {
         const data = result.data;
         if (data) {
           const area = data.area;
           newDataForAllAreas[area] = data;
-          //addData(area,data);
           if (data.labels && (result.data.labels.length > 0)) {
             const dateYmdFirst = result.data.dateYmd[0];
             const dateYmdLast = result.data.dateYmd[result.data.dateYmd.length-1];
@@ -44,7 +50,7 @@ export default function CovidGraph(props) {
             
           }  
         } else {
-          props.addError('Data Api response for ' + data.area + ' response did not contain any data...');
+          props.errorAdd('Data Api response for ' + data.area + ' response did not contain any data...');
         }
       });
       // now pad out the data so they have the same x axis.
@@ -93,7 +99,7 @@ export default function CovidGraph(props) {
                 if (curAreaData[propertyName][curDataIndex]) {
                   // truthy data, so let's see if it's earlier than the earlist so far:
                   if (earliestDataFoundYmd === false || (earliestDataFoundYmd > dateYmd)) {
-                    console.log('replacing ' + earliestDataFoundYmd + ' with ' + dateYmd);
+                    //console.log('replacing ' + earliestDataFoundYmd + ' with ' + dateYmd + ' becasue property' + propertyName + ' is ' + curAreaData[propertyName][curDataIndex]);
                     earliestDataFoundYmd = dateYmd;
                   }
                 };
@@ -126,7 +132,7 @@ export default function CovidGraph(props) {
           }
         } else {
           console.log('No data found to pad for ' + areaValue);
-          props.addError('No data found to pad for ' + areaValue);
+          props.errorAdd('No data found to pad for ' + areaValue);
         }
 
 
@@ -134,46 +140,57 @@ export default function CovidGraph(props) {
         // make a dataset for each property in each area:
         var chartDatasets = [];
         var colourIndex = 0;
+        
         for (let paddedDataIndex in paddedDataForAllAreas) {
           const areaData = paddedDataForAllAreas[paddedDataIndex];
-          if (areaData['deaths']) {
-            // data set for this area for deaths:
-            let oneChartData = {
-              label: "Deaths - " + areaData.area,
-              backgroundColor: pseudoRandomColours[colourIndex],
-              borderColor: pseudoRandomColours[colourIndex],
-              data: areaData.deaths,
-              type:'bar',
-              fill:false,
-              yAxisID: 'deaths',
-            };
-            colourIndex = (colourIndex +1 % pseudoRandomColours.length);
-            chartDatasets.push(oneChartData);
-            // one one for the doubling rate:
-            let anotherChartData = {
-              label: "Death Doubling Days - " + areaData.area,
-              fill: false,
-              type: 'line',
-              backgroundColor: pseudoRandomColours[colourIndex],
-              borderColor: pseudoRandomColours[colourIndex],
-              data: areaData.deathDoublingDays,
-              yAxisID: 'doubling-days',
+          ['deaths','cases','recovered'].forEach(dataSetKey => {
+            if (areaData[dataSetKey]) {
+              // data set for this area for deaths:
+              let oneChartData = {
+                label: chartDataLabelPrefix[dataSetKey] + areaData.area,
+                backgroundColor: pseudoRandomColours[colourIndex],
+                borderColor: pseudoRandomColours[colourIndex],
+                data: areaData[dataSetKey],
+                type:'bar',
+                fill:false,
+                yAxisID: 'number',
+                order: 40, // put bar behind line
+              };
+              colourIndex = (colourIndex +1 % pseudoRandomColours.length);
+              chartDatasets.push(oneChartData);
             }
-            colourIndex = (colourIndex +1 % pseudoRandomColours.length);
-            chartDatasets.push(anotherChartData);
-          }
+            if (areaData[dataSetKey + 'DoublingDays']) {
+              let anotherChartData = {
+                label: chartDataLabelPrefix[dataSetKey + 'DoublingDays'] + areaData.area,
+                fill: false,
+                spanGaps:true,
+                type: 'line',
+                backgroundColor: pseudoRandomColours[colourIndex],
+                borderColor: pseudoRandomColours[colourIndex],
+                data: areaData[dataSetKey + 'DoublingDays'],
+                yAxisID: 'doubling-days',
+                order: 20,
+              }
+              colourIndex = (colourIndex +1 % pseudoRandomColours.length);
+              chartDatasets.push(anotherChartData);
+            } else {
+              console.log('no ' )
+              console.log(areaData)
+            }
+          });
         }
-        
-        console.log('display afetr ' + earliestDataFoundYmd);
         setChartData({
           datasets: chartDatasets,
           labels: chartLabels
         });
+        if (chartDatasets.length > 2) {
+          props.messageAdd('Click on any entry in the legend on the right to show / hide individual bars or lines. To hide this message click the \'X\' =>');
+        }
         props.setGraphLoading({ graphLoading: false});
       }
     })
     .catch(err =>{
-      props.addError('The data source api returned an error: ' + err.message);
+      props.errorAdd('The data source api returned an error: ' + err.message);
     })
   },[props.dataSets, props.apiPort ])
   if (props.graphLoading.graphLoading) {

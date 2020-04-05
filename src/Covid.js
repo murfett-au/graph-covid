@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CountryStateCountySelect from './components/CountryStateCountySelect';
 import Messages from './components/Messages';
-import Datasets from './components/Datasets';
+//import Datasets from './components/Datasets';
 import CovidGraph from './components/CovidGraph';
 import axios from 'axios';
 import './Covid.css';
@@ -19,7 +19,7 @@ function Covid() {
   var [ dataSets, setDataSets ] = useState([]);
   var [ graphLoading, setGraphLoading] = useState({graphLoading: true});
   var [ messages, setMessages ] = useState(["Welcome to John Murfett's Covid-19 analysis tool. Click the X on the right to remove this message"]);
-  function addError(error) {
+  function errorAdd(error) {
     let newErrors;
     if (errors) {
       newErrors = [...errors];
@@ -45,19 +45,23 @@ function Covid() {
           setStates(result.data.states);
           setRegions(result.data.regions);
         } else {
-          addError('Api response did not contain any data...');
+          errorAdd('Api response did not contain any data...');
         }
       } catch (error) {
-        addError('The api code returned the following error: ' + error.message);
+        errorAdd('The api code returned the following error: ' + error.message);
       }
       setIsLoading(false);
     };
     fetchAreasData();
   }, []);
   function messageAdd(message) {
-    var msgs = [...messages];
-    msgs.push(message);
-    setMessages(msgs);
+    if (messages.indexOf(message) === -1) {
+      var msgs = [...messages];
+      msgs.push(message);
+      setMessages(msgs);
+    } else {
+      console.log('Supressed duplicate message ' + message);
+    }
   }
   function removeMessage(id) {
     console.log(id);
@@ -111,13 +115,10 @@ function Covid() {
       areErrors = {false}
       messages = {messages}
     />
-    <Datasets
-      dataSetRemove={dataSetRemove}
-      dataSets = {dataSets}
-    />
     {(dataSets.length > 0) ?
     <CovidGraph 
-      addError = {addError}
+      errorAdd = {errorAdd}
+      messageAdd = {messageAdd}
       dataSets = {dataSets}
       apiPort = {apiPort}
       setGraphLoading = {setGraphLoading}

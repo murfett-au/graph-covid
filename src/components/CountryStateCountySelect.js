@@ -6,9 +6,9 @@ export default function CountryStateCountySelect(props) {
     const [ selectedCountry, setSelectedCountry ] = useState({country: {label:'Australia', value:'australia'}});
     const [ selectedState, setSelectedState ] = useState({state:includeAll});
     const [ selectedRegion, setSelectedRegion ] = useState({region: null});
-    const [ inclCases, setInclCases ] = useState({ cases: false});
+    const [ inclCases, setInclCases ] = useState({ cases: true});
     const [ inclDeaths, setInclDeaths ] = useState({ deaths: true});
-    const [ inclRecovered, setInclRecovered ] = useState({ recovered: false })
+    const [ inclRecovered, setInclRecovered ] = useState({ recovered: true })
     
     /**
      * changeGeography is one function called by changes to country, state and county,
