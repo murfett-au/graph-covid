@@ -28,7 +28,7 @@ export const chartOptionsFixed = {
           id: 'doubling-days',
           scaleLabel: {
             display: true,
-            labelString: 'Deaths Double Every (days)',
+            labelString: 'Doubling Every... (days)',
           },
           type: 'linear',
           display: true,

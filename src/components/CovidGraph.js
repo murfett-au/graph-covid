@@ -6,12 +6,20 @@ const pseudoRandomColours = [ 'rgb(0,0,0)', 'rgb(255,0,0)','rgb(0,255,0)','rgb(0
 const { dateYmdIncrement, formatForXAxisLabel } = require('../utilities.js');
 const areaDataPropertyNamesAll = ['deaths','deathsDoublingDays','cases','casesDoublingDays','recovered','recoveredDoublingDays'];
 const chartDataLabelPrefix = {
-  'deaths': "R.H. Scale: Deaths - ",
-  'deathsDoublingDays': 'L.H. Scale: Deaths - ',
-  'cases': 'R.H. Scale: Cases - ',
-  'casesDoublingDays' : 'L.H. Scale: Cases - ',
-  'recovered': 'R.H Scale: Recovered - ',
-  'recoveredDoublingDays': 'L.H. Scale: Recovered - ',
+  'deaths': "Deaths - ",
+  'deathsDoublingDays': 'Growth in Deaths - ',
+  'cases': 'Cases - ',
+  'casesDoublingDays' : 'Growth in Cases - ',
+  'recovered': 'Recovered - ',
+  'recoveredDoublingDays': 'Growth in Recovered - ',
+};
+const chartDataLabelSuffix = {
+  'deaths': " (RHS)",
+  'deathsDoublingDays': ' (LHS)',
+  'cases': ' (RHS)',
+  'casesDoublingDays' : ' (LHS)',
+  'recovered': ' (RHS)',
+  'recoveredDoublingDays': ' (LHS)',
 }
 export default function CovidGraph(props) {
   var [ chartData, setChartData ] = useState(false);
@@ -147,7 +155,7 @@ export default function CovidGraph(props) {
             if (areaData[dataSetKey]) {
               // data set for this area for deaths:
               let oneChartData = {
-                label: chartDataLabelPrefix[dataSetKey] + areaData.area,
+                label: chartDataLabelPrefix[dataSetKey] + areaData.area + chartDataLabelSuffix[dataSetKey],
                 backgroundColor: pseudoRandomColours[colourIndex],
                 borderColor: pseudoRandomColours[colourIndex],
                 data: areaData[dataSetKey],
@@ -161,7 +169,7 @@ export default function CovidGraph(props) {
             }
             if (areaData[dataSetKey + 'DoublingDays']) {
               let anotherChartData = {
-                label: chartDataLabelPrefix[dataSetKey + 'DoublingDays'] + areaData.area,
+                label: chartDataLabelPrefix[dataSetKey + 'DoublingDays'] + areaData.area + chartDataLabelSuffix[dataSetKey],
                 fill: false,
                 spanGaps:true,
                 type: 'line',
