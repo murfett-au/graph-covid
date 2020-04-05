@@ -147,6 +147,7 @@ export default function CovidGraph(props) {
               fill:false,
               yAxisID: 'deaths',
             };
+            colourIndex = (colourIndex +1 % pseudoRandomColours.length);
             chartDatasets.push(oneChartData);
             // one one for the doubling rate:
             let anotherChartData = {
