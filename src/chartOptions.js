@@ -1,5 +1,8 @@
 export const chartOptionsFixed = {
     responsive: true,
+    onResize: function(ci,newSize) {
+        ci.options.legend.position = (newSize.width < 1200)?'bottom':'right';
+    },
     tooltips: {
       mode: 'label'
     },
@@ -9,7 +12,7 @@ export const chartOptionsFixed = {
       }
     },
     legend:{
-      position: 'right',
+      position: 'bottom',
       onClick: function(e, legendItem) {
         var index = legendItem.datasetIndex;
         var ci = this.chart;
