@@ -36,7 +36,9 @@ export default function CovidGraph(props) {
       return axios(url);
     }
     var promises = [];
+    var areaLabelsByAreaValue = [];
     props.dataSets.forEach( dataSet => {
+      areaLabelsByAreaValue[dataSet.value] = dataSet.label;
       promises.push(fetchData(dataSet.value))
     });
     Promise.all(promises)
@@ -46,6 +48,7 @@ export default function CovidGraph(props) {
         const data = result.data;
         if (data) {
           const area = data.area;
+          data.areaLabel = areaLabelsByAreaValue[data.areaValue]
           newDataForAllAreas[area] = data;
           if (data.labels && (result.data.labels.length > 0)) {
             const dateYmdFirst = result.data.dateYmd[0];
@@ -62,6 +65,7 @@ export default function CovidGraph(props) {
           props.errorAdd('Data Api response for ' + data.area + ' response did not contain any data...');
         }
       });
+      
       // now pad out the data so they have the same x axis.
       // these variables will be set first time through the loop:
       var areaDataPropertyNames = false;
@@ -83,7 +87,8 @@ export default function CovidGraph(props) {
           var newAreaData = {
             dateYmd: [],
             labels: [],
-            area: areaValue,
+            areaValue: areaValue,
+            areaLabel: curAreaData.areaLabel,
             includeDescendants: curAreaData.includeDescendants,
           };
           for (let i in areaDataPropertyNames) {
@@ -151,12 +156,13 @@ export default function CovidGraph(props) {
         var colourIndex = 0;
         
         for (let paddedDataIndex in paddedDataForAllAreas) {
+          
           const areaData = paddedDataForAllAreas[paddedDataIndex];
           ['deaths','cases','recovered'].forEach(dataSetKey => {
             if (areaData[dataSetKey]) {
               // data set for this area for deaths:
               let oneChartData = {
-                label: chartDataLabelPrefix[dataSetKey] + areaData.area + chartDataLabelSuffix[dataSetKey],
+                label: chartDataLabelPrefix[dataSetKey] + areaData.areaLabel + chartDataLabelSuffix[dataSetKey],
                 backgroundColor: pseudoRandomColours[colourIndex],
                 borderColor: pseudoRandomColours[colourIndex],
                 data: areaData[dataSetKey],
@@ -168,15 +174,16 @@ export default function CovidGraph(props) {
               colourIndex = (colourIndex +1 % pseudoRandomColours.length);
               chartDatasets.push(oneChartData);
             }
-            if (areaData[dataSetKey + 'DoublingDays']) {
+            dataSetKey = dataSetKey + 'DoublingDays';
+            if (areaData[dataSetKey]) {
               let anotherChartData = {
-                label: chartDataLabelPrefix[dataSetKey + 'DoublingDays'] + areaData.area + chartDataLabelSuffix[dataSetKey],
+                label: chartDataLabelPrefix[dataSetKey ] + areaData.areaLabel + chartDataLabelSuffix[dataSetKey],
                 fill: false,
                 spanGaps:true,
                 type: 'line',
                 backgroundColor: pseudoRandomColours[colourIndex],
                 borderColor: pseudoRandomColours[colourIndex],
-                data: areaData[dataSetKey + 'DoublingDays'],
+                data: areaData[dataSetKey],
                 yAxisID: 'doubling-days',
                 order: 20,
               }

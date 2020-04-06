@@ -107,6 +107,7 @@ app.get('/data/:requestedLocationSlug/:includeDescendants', (req, res) => {
     }
     console.log('/data/' + requestedLocationSlug + '/', includeDescendants);
     getDataFromDailyReports(requestedLocationSlug, includeDescendants, (error, countriesArray, states, regions, dataByLocationDate) => {
+        // we want to return a human readable
         if (error) {
             res.status(500).send('Internal error occured getting data for ' + requestedLocationSlug)
         } else {
@@ -418,9 +419,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                                             }
                                         }
                                         if (! dataByLocationDate[requestedLocationSlug] ) {
-                                            dataByLocationDate[requestedLocationSlug] = {
-                                                areaLabel: country + (state?(' - ' + state + (region?(' - ' + region):'')):'')
-                                            };
+                                            dataByLocationDate[requestedLocationSlug] = {};
                                         }
 
                                         if (dataByLocationDate[requestedLocationSlug][fileDate]) {
@@ -451,6 +450,7 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                 var previousDate = dateEarliest;
                 var curDate = dateYmdIncrement(dateEarliest);
                 var graphData = {
+                    areaValue: requestedLocationSlug,
                     labels: [],
                     cases: [],
                     casesDoublingDays: [],
@@ -459,7 +459,6 @@ function getDataFromDailyReports(requestedLocationSlug,includeDescendants,callba
                     recovered: [],
                     recoveredDoublingDays: [],
                     dateYmd: [],
-                    area: dataByLocationDate[requestedLocationSlug].areaLabel,
                 };
                 var curCases = 0;
                 var curDeaths = 0;
