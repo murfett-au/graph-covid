@@ -4,6 +4,7 @@ import Messages from './components/Messages';
 //import Datasets from './components/Datasets';
 import CovidGraph from './components/CovidGraph';
 import axios from 'axios';
+import Spinner from 'react-spinner-material';
 import './Covid.css';
 
 //import { slugify } from './utilities.js';
@@ -88,14 +89,14 @@ function Covid() {
     }
     setDataSets(newDataSets);
   }
-  function dataSetRemove(id) {
-    var dsets = [...dataSets];
-    dsets.splice(id,1);
-    setDataSets(dsets);
-  }
+  // function dataSetRemove(id) {
+  //   var dsets = [...dataSets];
+  //   dsets.splice(id,1);
+  //   setDataSets(dsets);
+  // }
   var content = null;
   if (isLoading) {
-    content = <div className="Loading">Loading</div>;
+    content = <div className='Loading'><Spinner radius = {24} color = {"green"} />&nbsp;Loading Country Options...</div>
   } else {
     content = <CountryStateCountySelect
       countryOptions= {countryOptions}

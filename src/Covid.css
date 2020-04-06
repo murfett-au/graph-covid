@@ -83,3 +83,7 @@ margin: 0px;
 .DataSetsHeading {
   font-weight: 600;
 }
+.Loading {
+  display: flex;
+  flex-direction: row;
+}

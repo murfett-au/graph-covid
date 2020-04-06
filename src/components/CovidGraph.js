@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Line} from 'react-chartjs-2';
 import {chartOptionsFixed} from '../chartOptions.js'
+import Spinner from 'react-spinner-material';
 const pseudoRandomColours = [ 'rgb(0,0,0)', 'rgb(255,0,0)','rgb(0,255,0)','rgb(0,0,255)','rgb(255,0,255)','rgb(128,0,0)','rgb(128,128,0)','rgb(0,128,0)','rgb(128,0,128)','rgb(0,128,128)','rgb(0,0,128)'];
 const { dateYmdIncrement, formatForXAxisLabel } = require('../utilities.js');
 const areaDataPropertyNamesAll = ['deaths','deathsDoublingDays','cases','casesDoublingDays','recovered','recoveredDoublingDays'];
@@ -202,7 +203,7 @@ export default function CovidGraph(props) {
     })
   },[props.dataSets, props.apiPort ])
   if (props.graphLoading.graphLoading) {
-    return <div>Graph Loading</div>
+    return <div><Spinner radius={120} colour='lightgreen' />&nbsp;Getting data for selected countries from server.</div>
   }
   return <Line data={chartData} options = {chartOptionsFixed}/>
 }
