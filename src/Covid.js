@@ -68,7 +68,6 @@ function Covid() {
     }
   }
   function removeMessage(id) {
-    console.log(id);
     var msgs = [...messages];
     msgs.splice(id,1);
     setMessages(msgs);
@@ -77,7 +76,7 @@ function Covid() {
     var newDataSets = [...dataSets];
     var addAtIndex = false;
     dataSets.forEach( (existingDataSet,index) => {
-      if (existingDataSet.label === newDataSet.label) {
+      if (existingDataSet.value === newDataSet.value) {
         addAtIndex = index;
         return;
       }

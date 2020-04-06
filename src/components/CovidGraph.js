@@ -47,9 +47,9 @@ export default function CovidGraph(props) {
       allResults.forEach(result => {
         const data = result.data;
         if (data) {
-          const area = data.area;
+          const areaValue = data.areaValue;
           data.areaLabel = areaLabelsByAreaValue[data.areaValue]
-          newDataForAllAreas[area] = data;
+          newDataForAllAreas[areaValue] = data;
           if (data.labels && (result.data.labels.length > 0)) {
             const dateYmdFirst = result.data.dateYmd[0];
             const dateYmdLast = result.data.dateYmd[result.data.dateYmd.length-1];
@@ -62,7 +62,7 @@ export default function CovidGraph(props) {
             
           }  
         } else {
-          props.errorAdd('Data Api response for ' + data.area + ' response did not contain any data...');
+          props.errorAdd('Data Api response for ' + data.areaValue + ' response did not contain any data...');
         }
       });
       
